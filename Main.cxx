@@ -13,17 +13,20 @@ using namespace std;
 Fitter *myFitter = NULL;
 
 
-enum ParamType  {kRad    = 0,
+enum ParamType  {
+		 kRad    = 0,
 		 kF0Real = 1,
 		 kF0Imag = 2,
 		 kD0     = 3,
-		 kNorm   = 4};
+		 kNorm   = 4
+};
 
-enum SystemType {kLL010, kLL1030, kLL3050,
-		 kAA010, kAA1030, kAA3050,
-		 kLA010, kLA1030, kLA3050,
-		 kLLAA010, kLLAA1030, kLLAA3050};
-
+enum SystemType {
+	kLL010, kLL1030, kLL3050,
+	kAA010, kAA1030, kAA3050,
+	kLA010, kLA1030, kLA3050,
+	kLLAA010, kLLAA1030, kLLAA3050
+};
 
 TH2D *GetTransformMatrix(TString rootFileName, TString histName)
 {
@@ -43,7 +46,7 @@ vector<LednickyInfo> PrepareLednickyInfo(Bool_t isIdentical)
   // Args: TString name, Double_t lambdaParamter, TH2D *transformMatrix, Bool_t isIdenticalPair
   LednickyInfo infoLL("LambdaLambda", 0.28, NULL, isIdentical);
   ledInfo.push_back(infoLL);
-  
+
   TString fileNameMatrix = "~/Analysis/lambda/AliAnalysisLambda/Fitting/FemtoFitting/PreparedTransformMatrices.root";
   LednickyInfo infoLS("LambdaSigma", 0.21, GetTransformMatrix(fileNameMatrix, "TransformMatrixSigmaLambda"), kFALSE);
   ledInfo.push_back(infoLS);
@@ -71,7 +74,7 @@ vector<LednickyInfo> PrepareLednickyInfo(Bool_t isIdentical)
 
 void UserSetupSystems(Fitter *fitter)
 {
-  // Add systems to the analysis. The user should modify this 
+  // Add systems to the analysis. The user should modify this
   // to suit their fitting needs
 
 
@@ -80,13 +83,13 @@ void UserSetupSystems(Fitter *fitter)
   TString fileName = "/home/jai/Analysis/lambda/AliAnalysisLambda/Results/AnalysisResults/cfsCombinedLLAAMomCorrected.root";
   TString histName = "CombinedLLAA0-10KstarMomCorrected";
   TString simpleName = "LLAA010";
-  // Make initial parameters: Radius, ReF0, ImF0, D0, Normalization 
-  Double_t initParamsArr[5] = {3.47, -.25, 0., 3, 1.}; 
+  // Make initial parameters: Radius, ReF0, ImF0, D0, Normalization
+  Double_t initParamsArr[5] = {3.47, -.25, 0., 3, 1.};
   vector<Double_t> initParams(initParamsArr, initParamsArr+5);
   Double_t minParamsArr[5] = {0., 0., 0., 0., 0.};
   vector<Double_t> minParams(minParamsArr, minParamsArr+5);
   Double_t maxParamsArr[5] = {0., 0., 0., 0., 0.};
-  vector<Double_t> maxParams(maxParamsArr, maxParamsArr+5);  
+  vector<Double_t> maxParams(maxParamsArr, maxParamsArr+5);
   // Determine which parameters should be fixed in the fitter.
   Bool_t fixParamsArr[5] = {kFALSE, kFALSE, kTRUE, kFALSE, kFALSE};
   vector<Bool_t> fixParams(fixParamsArr, fixParamsArr+5);
@@ -148,13 +151,12 @@ void UserSetupSystems(Fitter *fitter)
 
 
 
-
   ////////////////// Setting up Lambda-Antilambda ////////////////////
   // 0-10%
   fileName = "/home/jai/Analysis/lambda/AliAnalysisLambda/Results/AnalysisResults/cfsLamALamKstarMomCorrected.root";
   histName = "LamALam0-10centrality_varBin5BothFieldsKstarMomCorrected";
   simpleName = "LA010";
-  Double_t initParamsArrLA[5] = {3.47, -.65, .33, 0., 1.}; 
+  Double_t initParamsArrLA[5] = {3.47, -.65, .33, 0., 1.};
   vector<Double_t> initParamsLA(initParamsArrLA, initParamsArrLA + 5);
   Bool_t fixParamsArrLA[5] = {kFALSE, kFALSE, kFALSE, kTRUE, kFALSE};
   vector<Bool_t> fixParamsLA(fixParamsArrLA, fixParamsArrLA + 5);
@@ -187,7 +189,7 @@ void UserSetConstraints(Fitter *myFitter)
   Int_t systemsArrLA[3] = {kLA010, kLA1030,kLA3050};
   vector<Int_t> systemsLA(systemsArrLA, systemsArrLA + 3);
   ParamType parRe = kF0Real;
-  ParamType parIm = kF0Imag;
+  // ParamType parIm = kF0Imag;
   ParamType parD0 = kD0;
   // myFitter->SetupConstraint(parRe, systemsLA);
   // myFitter->SetupConstraint(parIm, systemsLA);
@@ -228,7 +230,7 @@ void UserSetConstraints(Fitter *myFitter)
   vector<Int_t> systems010;
   systems010.push_back(kLLAA010);
   systems010.push_back(kLA010);
-  ParamType parRad = kRad;
+  // ParamType parRad = kRad;
   // myFitter->SetupConstraint(parRad, systems010);
 
   vector<Int_t> systems1030;
@@ -300,4 +302,3 @@ int main(int argc, char **argv)
   delete myMinuit;
   return 0;
 }
- 

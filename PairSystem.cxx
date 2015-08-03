@@ -14,11 +14,11 @@ Double_t PairSystem::CalculateFitChisquare()
   // cout<<"PairSystem::CalculateFitChisquare"<<endl;
   // Calculate the chisquare difference between the
   // correlation function data and the combined LednickyEqns
-  
+
   // Update the fit parameters and get the full Lednicky Eqn graph
   TGraph *combinedGraph = GetCombinedTGraph();
 
-  //Calculate the total chisquare difference over the fit range.  
+  //Calculate the total chisquare difference over the fit range.
   Double_t chi2 = 0.;
 
   // Find the difference between the fit and the data.  Note that
@@ -45,7 +45,7 @@ TGraph* PairSystem::GetCombinedTGraph()
   // TStopwatch timer;
   // cout<<"PairSystem::GetCombinedTGraph"<<endl;
   // Make a TGraph object that sums all the LednickyEqns with
-  // lambda parameters.  
+  // lambda parameters.
 
   // Set up the graph's dimensions
   TGraph *combinedLednicky = fLednickyEqns[0]->GetLednickyGraph();
@@ -53,7 +53,7 @@ TGraph* PairSystem::GetCombinedTGraph()
   TString graphName = fCF->GetName();
   graphName += "Fit";
   combinedLednicky->SetName(graphName);
-  
+
   // Initialize the y-values to zero
   for(Int_t iBin = 0; iBin < combinedLednicky->GetN(); iBin++){
     combinedLednicky->GetY()[iBin] = 0.0;
@@ -62,9 +62,9 @@ TGraph* PairSystem::GetCombinedTGraph()
 
   // Calculate the y-value of the graph for each x-bin
 
-  
 
-  for(Int_t iLed = 0; iLed < fLednickyEqns.size(); iLed++)
+
+  for(UInt_t iLed = 0; iLed < fLednickyEqns.size(); iLed++)
   {
     // TStopwatch subTimer;
     TGraph *ledEqn = fLednickyEqns[iLed]->GetLednickyGraph();
@@ -80,7 +80,7 @@ TGraph* PairSystem::GetCombinedTGraph()
       combinedLednicky->GetY()[iBin] += partialBinContent;
     }
     delete ledEqn;
-    // subTimer.Print(); 
+    // subTimer.Print();
     // timer.Print(); timer.Continue();
   }
 
@@ -100,10 +100,10 @@ TGraph* PairSystem::GetCombinedTGraph()
 
 
 
-  // for(Int_t iBin = 0; iBin < combinedLednicky->GetN(); iBin++)
+  // for(UInt_t iBin = 0; iBin < combinedLednicky->GetN(); iBin++)
   // {
   //   Double_t combinedBinContent = 1.;
-  //   for(Int_t iLed = 0; iLed < fLednickyEqns.size(); iLed++)
+  //   for(UInt_t iLed = 0; iLed < fLednickyEqns.size(); iLed++)
   //   {
   //     TStopwatch subTimer;
   //     TGraph *ledEqn = fLednickyEqns[iLed]->GetLednickyGraph();
@@ -113,7 +113,7 @@ TGraph* PairSystem::GetCombinedTGraph()
   // 	  // <<".\tLambdaParam:\t"<<lambdaParam<<endl;
   //     combinedBinContent += (graphValue - 1.) * lambdaParam;
   //     delete ledEqn;
-  //     subTimer.Print(); 
+  //     subTimer.Print();
   //   }
   //   combinedBinContent /= fNorm;
   //   combinedLednicky->GetY()[iBin] = combinedBinContent;
@@ -127,7 +127,7 @@ void PairSystem::SetLednickyParameters(vector<Double_t> pars)
 {
   // cout<<"PairSystem::SetLednickyParameters"<<endl;
   // Pass the new fit parameters to each LednickyEqn
-  for(Int_t iLed = 0; iLed < fLednickyEqns.size(); iLed++){
+  for(UInt_t iLed = 0; iLed < fLednickyEqns.size(); iLed++){
     fLednickyEqns[iLed]->SetParameters(pars);
   }
   // Normalization parameter should be stored in PairSystem, not
@@ -135,15 +135,15 @@ void PairSystem::SetLednickyParameters(vector<Double_t> pars)
   fNorm = pars[4];
 
 
-  
+
   // Lambda parameters should not be passed on to Lednicky Eqn.
   // If they are coming from Minuit instead of being read from file
   // they should be updated in the PairSystem here.
-  if(pars.size() > 5) 
+  if(pars.size() > 5)
   {
     // Do lambda param stuff
   }
-  
+
 }
 
 PairSystem::PairSystem(TH1D *cfData, const vector<LednickyInfo> &ledInfo, TString pairTypeName, Int_t sysType):
@@ -161,7 +161,7 @@ fSystemType(sysType)
   // Create a Lednicky eqn for primary-primary correlation function
   // with no transform matrix (i.e. NULL ptr).
 
-  for(Int_t iSys = 0; iSys < ledInfo.size(); iSys++)
+  for(UInt_t iSys = 0; iSys < ledInfo.size(); iSys++)
   {
     fLambdaParameters.push_back(ledInfo[iSys].GetLambdaParam());
     LednickyEqn *lednicky = new LednickyEqn(ledInfo[iSys], fNBins, fBinWidth);
@@ -177,7 +177,7 @@ PairSystem::~PairSystem()
     delete fCF;
     fCF = NULL;
   }
-  for(Int_t i = 0; i < fLednickyEqns.size(); i++)
+  for(UInt_t i = 0; i < fLednickyEqns.size(); i++)
   {
     if(!fLednickyEqns[i]) continue;
     delete fLednickyEqns[i];
