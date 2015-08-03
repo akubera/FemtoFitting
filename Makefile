@@ -18,19 +18,23 @@ OBJ_FILES = $(addsuffix .o, ${CLASSES})
 
 .PHONY: all clean
 
-all: runMe
-
 runMe: Main.cxx Faddeeva.o FemtoFitting.a
-	g++  ${CFLAGS} $< Faddeeva.o FemtoFitting.a -o $@ ${LIBS}
+	${CXX} ${CFLAGS} $< Faddeeva.o FemtoFitting.a -o $@ ${LIBS}
 
 FemtoFitting.a: ${OBJ_FILES}
 	${AR} -r $@ $^
 
-Faddeeva.o: Faddeeva.cc
-	g++ -c Faddeeva.cc
+Faddeeva.o: Faddeeva.cc Faddeeva.hh
+	${CXX} -c Faddeeva.cc
 
 %.o: %.cxx %.h
 	${CXX} ${CFLAGS} -c $< -o $@
+
+test.exe: FemtoFitting.a tests/*
+	${CXX} ${CFLAGS} -Itests/bandit -I. tests/main.cxx -o $@ FemtoFitting.a ${LIBS}
+
+test: test.exe
+	./test.exe
 
 clean:
 	rm -f runMe *.o
