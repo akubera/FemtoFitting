@@ -22,11 +22,11 @@ Double_t PairSystem::CalculateFitChisquare()
   // cout<<"PairSystem::CalculateFitChisquare"<<endl;
   // Calculate the chisquare difference between the
   // correlation function data and the combined LednickyEqns
-  
+
   // Update the fit parameters and get the full Lednicky Eqn graph
   TGraph *combinedGraph = GetCombinedTGraph();
   assert(combinedGraph);
-  //Calculate the total chisquare difference over the fit range.  
+  //Calculate the total chisquare difference over the fit range.
   Double_t chi2 = 0.;
 
   // Find the difference between the fit and the data.  Note that
@@ -75,7 +75,7 @@ Double_t PairSystem::CalculateFitChisquare()
 TGraph* PairSystem::GetCombinedTGraph()
 {
   // Make a TGraph object that sums all the LednickyEqns with
-  // lambda parameters.  
+  // lambda parameters.
 
   // Set up the graph's dimensions
   TGraph *combinedLednicky = fLednickyEqns[0]->GetLednickyGraph();
@@ -85,7 +85,7 @@ TGraph* PairSystem::GetCombinedTGraph()
   else graphName = fPairTypeName;
   graphName += "Fit";
   combinedLednicky->SetName(graphName);
-  
+
   // Initialize the y-values to a unity baseline
   for(Int_t iBin = 0; iBin < combinedLednicky->GetN(); iBin++){
     combinedLednicky->GetY()[iBin] = 1.;
@@ -124,7 +124,7 @@ TCanvas* PairSystem::GetResidualComponentCanvas()
   // Prepare legend
   TLegend *leg = new TLegend(0.5, 0.3, 0.9, 0.6);
   leg->SetHeader("Primary and residual correlations");
-  
+
   // Draw the primary-primary correlation function with lambda
   // weight
   TGraph *primaryGraph = fLednickyEqns[0]->GetLednickyGraph();
@@ -142,7 +142,7 @@ TCanvas* PairSystem::GetResidualComponentCanvas()
 
   leg->AddEntry(primaryGraph, "", "L");
 
-  
+
   // Draw all the residual correlation functions;
   for(UInt_t iLed = 1; iLed < fLednickyEqns.size(); iLed++)
   {
@@ -160,7 +160,7 @@ TCanvas* PairSystem::GetResidualComponentCanvas()
     leg->AddEntry(residual, "", "L");
   }
   leg->Draw();
-  
+
   return can;
 }
 
@@ -239,7 +239,7 @@ fHighFitBin(50)
     assert(fDenHists[i]->GetBinWidth(1) == fBinWidth);
   }
   fCF = NULL; // Not using the correlation function in this mode
-  
+
   // Create a LednickyEqn from each LednickyInfo
   for(UInt_t iSys = 0; iSys < ledInfo.size(); iSys++)
   {

@@ -43,7 +43,7 @@ Fitter::Fitter():
   fParamNames.push_back("ImF0");
   fParamNames.push_back("D0");
   fParamNames.push_back("Norm");
-  
+
 }
 
 Fitter::~Fitter()
@@ -132,11 +132,6 @@ void Fitter::CreatePairSystemLog(TString simpleName, TString fileName, vector<TS
   cout<<"Added pair system with "<<numNames.size()<<" num and den pairs"<<endl;
 }
 
-
-
-
-
-
 void Fitter::DoFitting()
 {
   cout<<"DoFitting"<<endl;
@@ -144,13 +139,13 @@ void Fitter::DoFitting()
   Timer();
   // Run the fit procedure
 
-  
+
   Double_t arglist[5] = {0,0,0,0,0}; //Arguments that can be passed with Minuit commands
   Int_t errFlag = 0;
   arglist[0] = 1;
   fMinuit->mnexcm("CALL FCN", arglist, 1, errFlag);
 
-  
+
   // Set how verbose the output is (from no output at -1, to max at 3)
   arglist[0] = fMinuitVerbosity;
   fMinuit->mnexcm("SET PRINT", arglist, 1, errFlag);
@@ -163,7 +158,7 @@ void Fitter::DoFitting()
   arglist[1] = 0.1;
   fMinuit->mnexcm("MIGRAD", arglist, 1, errFlag);
   Timer();
-  
+
   fMinuit->mnexcm("SHOw CORrelations", arglist, 1, errFlag);
 
   if(fUseMINOS) {
@@ -172,7 +167,7 @@ void Fitter::DoFitting()
   }
 
 
-  
+
   cout<<"Finalchi2:\t"<<fChisquare<<endl
       <<"Fit bins:\t"<<fFitBins<<endl
       <<"Actual Minuit Pars:\t"<<fMinuitParNames.size()<<endl
@@ -188,7 +183,7 @@ void Fitter::DoFitting()
 Int_t Fitter::GetConstrainedParamIndex(const Int_t currentSys, const Int_t currentPar)
 {
   // Find index of the earlier matching constrained parameter
-  
+
   Int_t sysType = fPairSystems[currentSys]->GetSystemType();
 
   // Loop through the constraints until we find the relevant one
@@ -198,14 +193,14 @@ Int_t Fitter::GetConstrainedParamIndex(const Int_t currentSys, const Int_t curre
     ParameterConstraint *constraint = fParamConstraints[iCon];
     const Int_t parIndex = constraint->GetConstrainedParam();
     if(parIndex != currentPar) continue;
-    
+
     const vector<Int_t> &consSystems = fParamConstraints[iCon]->GetConstrainedSystems();
 
     for(UInt_t iSys = 1; iSys < consSystems.size(); iSys++)
     {
-      
+
       // Does this system have this constraint?
-      if(consSystems[iSys] == sysType) 
+      if(consSystems[iSys] == sysType)
       {
 	// Get the type of the first system in the constraint
 	const Int_t sysTypePrior = consSystems[0];
@@ -219,17 +214,17 @@ Int_t Fitter::GetConstrainedParamIndex(const Int_t currentSys, const Int_t curre
 	  }
 	}
 	assert(sysIndexPrior != -1);
-	
+
 	// Return the Minuit index of the parameter.
 	Int_t absoluteIndex = 0;
 	for(Int_t iSysInner = 0; iSysInner < sysIndexPrior; iSysInner++) {
 	  absoluteIndex += fNParamsPerSystem[iSysInner];
 	}
-	
+
         absoluteIndex += parIndex;
-	return absoluteIndex;
+        return absoluteIndex;
       }
-    } 
+    }
   }
   // Should not get to this point
   return 100000;
@@ -244,7 +239,7 @@ Double_t Fitter::GetChisquarePerNDF()
 Double_t Fitter::GetPvalue()
 {
   Double_t ndf = 1.*fFitBins - (1.*fMinuitParNames.size() - 1.*fFixedParams);
-  return TMath::Prob(fChisquare,ndf); 
+  return TMath::Prob(fChisquare,ndf);
 }
 
 void Fitter::InitializeMinuitParameters(TMinuit *minuit)
@@ -254,16 +249,17 @@ void Fitter::InitializeMinuitParameters(TMinuit *minuit)
   // Define the fit parameters
   fMinuit = minuit;
   Double_t startingStepSize = fStepSize;
+
   for(UInt_t iPar = 0; iPar < fMinuitParNames.size(); iPar++){
     fMinuit->DefineParameter(iPar, fMinuitParNames[iPar], fMinuitParInitial[iPar],  startingStepSize, fMinuitParMinimum[iPar], fMinuitParMaximum[iPar]);
     if(fMinuitParIsFixed[iPar]) fMinuit->FixParameter(iPar);
   }
-  
+
 }
 
 Bool_t Fitter::IsParameterConstrained(const Int_t currentSys, const Int_t currentPar)
 {
-  // Check to see if this parameter has been constrained 
+  // Check to see if this parameter has been constrained
   // to be the same as the parameter from an earlier system
   // cout<<"IsParameterConstrained\n";
   Int_t sysType = fPairSystems[currentSys]->GetSystemType();
@@ -278,7 +274,7 @@ Bool_t Fitter::IsParameterConstrained(const Int_t currentSys, const Int_t curren
       if(consSystems[iSys] == sysType) {
 	return true;
       }
-    } 
+    }
   }
   return kFALSE;
 }
@@ -359,7 +355,7 @@ void Fitter::SaveResidualComponentPlot(Int_t sys)
   TGraph *g = fPairSystems[sys]->GetCombinedTGraph();
   if(cf) cf->DrawCopy("same");
   if(g) g->Draw("same");
-  
+
   TString plotName = "Plot";
   plotName += components->GetName();
   plotName += fOutputString;
@@ -400,7 +396,7 @@ void Fitter::SetMinuitVerbosity(Int_t verbosity)
     Int_t errFlag = 0;
     fMinuit->mnexcm("SET PRINT", arglist, 1, errFlag);
   }
-  
+
 }
 
 void Fitter::SetParametersAndFit(Int_t& i, Double_t &totalChisquare, Double_t *par)
@@ -415,7 +411,7 @@ void Fitter::SetParametersAndFit(Int_t& i, Double_t &totalChisquare, Double_t *p
   // Take the TMinuit parameters, set the parameters for each
   // pair system, and get the resulting chisquare of the fit.
 
-  // We'll copy par into the parameters vector, and insert 
+  // We'll copy par into the parameters vector, and insert
   // any constrained parameters into their appropriate
   // positions
   vector<Double_t> parameters(fNParamsTotal);
@@ -424,12 +420,12 @@ void Fitter::SetParametersAndFit(Int_t& i, Double_t &totalChisquare, Double_t *p
   for(Int_t iSys = 0; iSys < fNSystems; iSys++)
   {
     Int_t nParams = fNParamsPerSystem[iSys];
-    for(Int_t iPar = 0; iPar < nParams; iPar++) 
+    for(Int_t iPar = 0; iPar < nParams; iPar++)
     {
       currentParamIndex++;
       // Int_t thisParamIndex = iSys * fNParams + iPar;
       // If the parameter is constrained, minuit won't have a value
-      // for it.  We'll need to copy the value from the 
+      // for it.  We'll need to copy the value from the
       // corresponding constrained parameter.
       if(IsParameterConstrained(iSys, iPar)){
 	Int_t priorIndex = GetConstrainedParamIndex(iSys, iPar);
@@ -445,7 +441,7 @@ void Fitter::SetParametersAndFit(Int_t& i, Double_t &totalChisquare, Double_t *p
   }
 
   // Break up the total parameter vector into a mini-vector for
-  // each PairSystem. Then pass the vector to the system and 
+  // each PairSystem. Then pass the vector to the system and
   // get chisquare
   totalChisquare = 0;
   Int_t nCopiedParams = 0;
@@ -473,10 +469,10 @@ void Fitter::SetupInitialParameters()
   {
     for(Int_t iPar = 0; iPar < fNParamsPerSystem[iSys]; iPar++)
     {
-      // Check to see if this parameter has been constrained 
+      // Check to see if this parameter has been constrained
       // to be the same as the parameter from an earlier system
       if(IsParameterConstrained(iSys, iPar)) {
-	// This parameter is constrained. It has already been set 
+	// This parameter is constrained. It has already been set
 	// up for a previous system.  Ignore it here.
 	continue;
       }
