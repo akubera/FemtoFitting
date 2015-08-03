@@ -1,34 +1,36 @@
-# LednickyEqn makefile
+# \file Makefile
+# Makefile for the FemtoFitting project
+
+CXX ?= g++
+AR ?= ar
 
 LIBS   = $(shell root-config --libs) -lMinuit
-CFLAGS = $(shell root-config --cflags)
+CFLAGS = $(shell root-config --cflags) -Wall
+
+CLASSES = LednickyEqn \
+					LednickyInfo \
+					PairSystem \
+					ParameterConstraint \
+					Fitter \
+
+OBJ_FILES = $(addsuffix .o, ${CLASSES})
+
 #IFLAGS = -I$(ROOTSYS)/include
-#.PHONY: clean
+.PHONY: clean
 
 all: runMe
 
-runMe: LednickyEqn.o Faddeeva.o LednickyInfo.o ParameterConstraint.o PairSystem.o Fitter.o Main.cxx
-	g++ Main.cxx Faddeeva.o LednickyEqn.o LednickyInfo.o ParameterConstraint.o PairSystem.o Fitter.o -o runMe $(LIBS) $(CFLAGS) 
+runMe: Faddeeva.o FemtoFitting.a Main.cxx
+	g++ Main.cxx Faddeeva.o FemtoFitting.a -o runMe $(LIBS) $(CFLAGS)
+
+FemtoFitting.a: ${OBJ_FILES}
+	${AR} -r $@ $^
 
 Faddeeva.o: Faddeeva.cc
 	g++ -c Faddeeva.cc
 
-LednickyEqn.o: LednickyEqn.cxx 
-	g++ -c LednickyEqn.cxx $(CFLAGS)
+%.o: %.cxx %.h
+	${CXX} ${CFLAGS} -c $< -o $@
 
-LednickyInfo.o: LednickyInfo.cxx 
-	g++ -c LednickyInfo.cxx $(CFLAGS) 
-
-ParameterConstraint.o: ParameterConstraint.cxx
-	g++ -c ParameterConstraint.cxx $(CFLAGS)
-
-PairSystem.o: PairSystem.cxx
-	g++ -c PairSystem.cxx $(CFLAGS)
-
-Fitter.o: Fitter.cxx
-	g++ -c Fitter.cxx $(CFLAGS)
-
-
-
-clean: 
+clean:
 	rm -f runMe *.o
