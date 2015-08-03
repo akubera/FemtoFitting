@@ -14,23 +14,27 @@ CLASSES = LednickyEqn \
 					Fitter \
 
 OBJ_FILES = $(addsuffix .o, ${CLASSES})
-
-#IFLAGS = -I$(ROOTSYS)/include
 .PHONY: clean
 
 all: runMe
 
 runMe: Faddeeva.o FemtoFitting.a Main.cxx
-	g++ Main.cxx Faddeeva.o FemtoFitting.a -o runMe $(LIBS) $(CFLAGS)
+	${CXX} -o $@ Main.cxx Faddeeva.o FemtoFitting.a $(LIBS) $(CFLAGS)
 
 FemtoFitting.a: ${OBJ_FILES}
 	${AR} -r $@ $^
 
-Faddeeva.o: Faddeeva.cc
-	g++ -c Faddeeva.cc
+Faddeeva.o: Faddeeva.cc Faddeeva.hh
+	${CXX} -c Faddeeva.cc
 
 %.o: %.cxx %.h
 	${CXX} ${CFLAGS} -c $< -o $@
+
+test.exe: FemtoFitting.a tests/*
+	${CXX} ${CFLAGS} -Itests/bandit -I. tests/main.cxx -o $@ FemtoFitting.a ${LIBS}
+
+test: test.exe
+	./test.exe
 
 clean:
 	rm -f runMe *.o
