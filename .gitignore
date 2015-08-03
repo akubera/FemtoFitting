@@ -10,4 +10,8 @@
 *.zip
 *.root
 *.o
+*.a
+*.exe
 AutoDict_*
+
+runMe
