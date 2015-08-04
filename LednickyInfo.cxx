@@ -1,7 +1,10 @@
 
 #include "LednickyInfo.h"
 
-LednickyInfo::LednickyInfo(TString systemName, Double_t lambdaParam, TH2D *transformMatrix, Bool_t isIdenticalPair):
+LednickyInfo::LednickyInfo(const TString& systemName,
+                           Double_t lambdaParam,
+                           TH2D *transformMatrix,
+                           Bool_t isIdenticalPair):
   fSystemName(systemName),
   fLambdaParam(lambdaParam),
   fTransformMatrix(transformMatrix),

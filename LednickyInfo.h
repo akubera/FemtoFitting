@@ -4,14 +4,18 @@
 #include "TH2D.h"
 
 class LednickyInfo {
- public: 
-  LednickyInfo(TString systemName, Double_t lambdaParam, TH2D *transformMatrix, Bool_t isIdenticalPair);
+ public:
+  LednickyInfo(const TString& systemName,
+               Double_t lambdaParam,
+               TH2D *transformMatrix,
+               Bool_t isIdenticalPair);
+
   ~LednickyInfo();
   TString GetSystemName() const {return fSystemName;};
   Double_t GetLambdaParam() const {return fLambdaParam;};
   TH2D *GetTransformMatrix() const {return fTransformMatrix;};
   Bool_t GetIsIdenticalPair() const {return fIsIdenticalPair;};
-  
+
 
  private:
   TString fSystemName;
