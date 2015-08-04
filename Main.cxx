@@ -1,4 +1,9 @@
+/**
+ * \file Main.cxx
+ * File containing entry point for FemtoFitting package
+ */
 
+#include "ArgParse.h"
 #include "LednickyInfo.h"
 #include "Fitter.h"
 #include <iostream>
@@ -13,24 +18,24 @@ using namespace std;
 Fitter *myFitter = NULL;
 
 
-enum ParamType  {
-		 kRad    = 0,
-		 kF0Real = 1,
-		 kF0Imag = 2,
-		 kD0     = 3,
-		 kNorm   = 4
+enum ParamType {
+     kRad    = 0,
+     kF0Real = 1,
+     kF0Imag = 2,
+     kD0     = 3,
+     kNorm   = 4
 };
 
 enum SystemType {
-	kLL010, kLL1030, kLL3050,
-	kAA010, kAA1030, kAA3050,
-	kLA010, kLA1030, kLA3050,
-	kLLAA010, kLLAA1030, kLLAA3050
+  kLL010, kLL1030, kLL3050,
+  kAA010, kAA1030, kAA3050,
+  kLA010, kLA1030, kLA3050,
+  kLLAA010, kLLAA1030, kLLAA3050
 };
 
-TH2D *GetTransformMatrix(TString rootFileName, TString histName)
+TH2D *GetTransformMatrix(const TString& rootFileName, TString histName)
 {
-  TFile f(rootFileName,"read");
+  TFile f(rootFileName, "read");
   TH2D *h = (TH2D*) f.Get(histName);
   assert(h);
   h->SetDirectory(0);
@@ -40,34 +45,49 @@ TH2D *GetTransformMatrix(TString rootFileName, TString histName)
 
 vector<LednickyInfo> PrepareLednickyInfo(Bool_t isIdentical)
 {
+  const TString fileNameMatrix = "~/Analysis/lambda/AliAnalysisLambda/Fitting/FemtoFitting/PreparedTransformMatrices.root";
+
   // Create LednickyInfo for each primary and residual correlation
   vector<LednickyInfo> ledInfo;
 
   // Args: TString name, Double_t lambdaParamter, TH2D *transformMatrix, Bool_t isIdenticalPair
-  LednickyInfo infoLL("LambdaLambda", 0.28, NULL, isIdentical);
-  ledInfo.push_back(infoLL);
+  ledInfo.emplace_back("LambdaLambda", 0.28, nullptr, isIdentical);
 
-  TString fileNameMatrix = "~/Analysis/lambda/AliAnalysisLambda/Fitting/FemtoFitting/PreparedTransformMatrices.root";
-  LednickyInfo infoLS("LambdaSigma", 0.21, GetTransformMatrix(fileNameMatrix, "TransformMatrixSigmaLambda"), kFALSE);
-  ledInfo.push_back(infoLS);
+  ledInfo.emplace_back("LambdaSigma",
+                       0.21,
+                       GetTransformMatrix(fileNameMatrix, "TransformMatrixSigmaLambda"),
+                       kFALSE);
 
-  LednickyInfo infoLX0("LambdaXi0", 0.14, GetTransformMatrix(fileNameMatrix, "TransformMatrixXi0Lambda"), kFALSE);
-  ledInfo.push_back(infoLX0);
+  ledInfo.emplace_back("LambdaXi0",
+                       0.14,
+                       GetTransformMatrix(fileNameMatrix, "TransformMatrixXi0Lambda"),
+                       kFALSE);
 
-  LednickyInfo infoLXC("LambdaXiC", 0.14, GetTransformMatrix(fileNameMatrix, "TransformMatrixXiCLambda"), kFALSE);
-  ledInfo.push_back(infoLXC);
+  ledInfo.emplace_back("LambdaXiC",
+                       0.14,
+                       GetTransformMatrix(fileNameMatrix, "TransformMatrixXiCLambda"),
+                       kFALSE);
 
-  LednickyInfo infoSS("SigmaSigma", 0.04, GetTransformMatrix(fileNameMatrix, "TransformMatrixSigmaSigma"), isIdentical);
-  ledInfo.push_back(infoSS);
+  ledInfo.emplace_back("SigmaSigma",
+                       0.14,
+                       GetTransformMatrix(fileNameMatrix, "TransformMatrixSigmaSigma"),
+                       isIdentical);
 
-  LednickyInfo infoSX0("SigmaXi0", 0.05, GetTransformMatrix(fileNameMatrix, "TransformMatrixSigmaXi0"), kFALSE);
-  ledInfo.push_back(infoSX0);
 
-  LednickyInfo infoSXC("SigmaXiC", 0.05, GetTransformMatrix(fileNameMatrix, "TransformMatrixSigmaXiC"), kFALSE);
-  ledInfo.push_back(infoSXC);
+  ledInfo.emplace_back("SigmaXi0",
+                       0.14,
+                       GetTransformMatrix(fileNameMatrix, "TransformMatrixSigmaXi0"),
+                       kFALSE);
 
-  LednickyInfo infoX0XC("Xi0XiC", 0.04, GetTransformMatrix(fileNameMatrix, "TransformMatrixXiCXi0"), kFALSE);
-  ledInfo.push_back(infoX0XC);
+  ledInfo.emplace_back("SigmaXiC",
+                       0.05,
+                       GetTransformMatrix(fileNameMatrix, "TransformMatrixSigmaXiC"),
+                       kFALSE);
+
+  ledInfo.emplace_back("Xi0XiC",
+                       0.04,
+                       GetTransformMatrix(fileNameMatrix, "TransformMatrixXiCXi0"),
+                       kFALSE);
 
   return ledInfo;
 }
@@ -84,15 +104,12 @@ void UserSetupSystems(Fitter *fitter)
   TString histName = "CombinedLLAA0-10KstarMomCorrected";
   TString simpleName = "LLAA010";
   // Make initial parameters: Radius, ReF0, ImF0, D0, Normalization
-  Double_t initParamsArr[5] = {3.47, -.25, 0., 3, 1.};
-  vector<Double_t> initParams(initParamsArr, initParamsArr+5);
-  Double_t minParamsArr[5] = {0., 0., 0., 0., 0.};
-  vector<Double_t> minParams(minParamsArr, minParamsArr+5);
-  Double_t maxParamsArr[5] = {0., 0., 0., 0., 0.};
-  vector<Double_t> maxParams(maxParamsArr, maxParamsArr+5);
+  vector<Double_t> initParams = {3.47, -.25, 0., 3, 1.},
+                    minParams = {0., 0., 0., 0., 0.},
+                    maxParams = {0., 0., 0., 0., 0.};
   // Determine which parameters should be fixed in the fitter.
-  Bool_t fixParamsArr[5] = {kFALSE, kFALSE, kTRUE, kFALSE, kFALSE};
-  vector<Bool_t> fixParams(fixParamsArr, fixParamsArr+5);
+  vector<Bool_t> fixParams = {kFALSE, kFALSE, kTRUE, kFALSE, kFALSE};
+
   // Prepare the lednicky eqn info (lambda parameters, transform matrix locations, whether or not particles are identical)
   vector<LednickyInfo> ledInfoLL = PrepareLednickyInfo(kTRUE);
   // fitter->CreatePairSystem(simpleName, fileName, histName, kLLAA010, ledInfoLL, initParams, minParams, maxParams, fixParams);
@@ -186,8 +203,8 @@ void UserSetConstraints(Fitter *myFitter)
   // off a little bit).
 
   // Share real f0, imaginary f0, and d0 among partical-antiparticle
-  Int_t systemsArrLA[3] = {kLA010, kLA1030,kLA3050};
-  vector<Int_t> systemsLA(systemsArrLA, systemsArrLA + 3);
+  vector<Int_t> systemsLA = {kLA010, kLA1030, kLA3050};
+
   ParamType parRe = kF0Real;
   // ParamType parIm = kF0Imag;
   ParamType parD0 = kD0;
@@ -196,66 +213,50 @@ void UserSetConstraints(Fitter *myFitter)
   // myFitter->SetupConstraint(parD0, systemsLA);
 
   // Share real f0, imaginary f0, and d0 among LambdaLambda + AntilambdaAntilambda
-  Int_t systemsArrLLAA[3] = {kLLAA010, kLLAA1030,kLLAA3050};
-  vector<Int_t> systemsLLAA(systemsArrLLAA, systemsArrLLAA + 3);
+  vector<Int_t> systemsLLAA = {kLLAA010, kLLAA1030,kLLAA3050};
   // myFitter->SetupConstraint(parRe, systemsLLAA);
   // myFitter->SetupConstraint(parIm, systemsLLAA);
   // myFitter->SetupConstraint(parD0, systemsLLAA);
 
   // Share real f0, imaginary f0, and d0 among LambdaLambda
-  Int_t systemsArrLL[3] = {kLL010, kLL1030,kLL3050};
-  vector<Int_t> systemsLL(systemsArrLL, systemsArrLL + 3);
+  vector<Int_t> systemsLL = {kLL010, kLL1030,kLL3050};
   myFitter->SetupConstraint(parRe, systemsLL);
   // myFitter->SetupConstraint(parIm, systemsLL);
   myFitter->SetupConstraint(parD0, systemsLL);
 
   // Share real f0, imaginary f0, and d0 among LambdaLambda
-  Int_t systemsArrAA[3] = {kAA010, kAA1030,kAA3050};
-  vector<Int_t> systemsAA(systemsArrAA, systemsArrAA + 3);
+  vector<Int_t> systemsAA = {kAA010, kAA1030,kAA3050};
   myFitter->SetupConstraint(parRe, systemsAA);
   // myFitter->SetupConstraint(parIm, systemsAA);
   myFitter->SetupConstraint(parD0, systemsAA);
 
 
   // Constrain LL and AA together
-  Int_t systemsArrLLandAA[6] = {kLL010, kLL1030,kLL3050,
-				kAA010, kAA1030,kAA3050};
-  vector<Int_t> systemsLLandAA(systemsArrLLandAA, systemsArrLLandAA + 6);
+  vector<Int_t> systemsLLandAA = {kLL010, kLL1030,kLL3050,
+                                  kAA010, kAA1030,kAA3050};
   myFitter->SetupConstraint(parRe, systemsLLandAA);
   // myFitter->SetupConstraint(parIm, systemsLLandLA);
   // myFitter->SetupConstraint(parD0, systemsLLandLA);
 
 
   // share radii among like centralities
-  vector<Int_t> systems010;
-  systems010.push_back(kLLAA010);
-  systems010.push_back(kLA010);
+  vector<Int_t> systems010 = {kLLAA010, kLA010};
   // ParamType parRad = kRad;
   // myFitter->SetupConstraint(parRad, systems010);
 
-  vector<Int_t> systems1030;
-  systems1030.push_back(kLLAA1030);
-  systems1030.push_back(kLA1030);
+  vector<Int_t> systems1030 = {kLLAA1030, kLA1030};
   // myFitter->SetupConstraint(parRad, systems1030);
 
-  vector<Int_t> systems3050;
-  systems3050.push_back(kLLAA3050);
-  systems3050.push_back(kLA3050);
+  vector<Int_t> systems3050 = {kLLAA3050, kLA3050};
   // myFitter->SetupConstraint(parRad, systems3050);
 
-  vector<Int_t> sysLLAA010;
-  sysLLAA010.push_back(kLL010);
-  sysLLAA010.push_back(kAA010);
+  vector<Int_t> sysLLAA010 = {kLL010, kAA010};
   // myFitter->SetupConstraint(parRad, sysLLAA010);
 
-  vector<Int_t> sysLLAA1030;
-  sysLLAA1030.push_back(kLL1030);
-  sysLLAA1030.push_back(kAA1030);
+  vector<Int_t> sysLLAA1030 = {kLL1030, kAA1030};
   // myFitter->SetupConstraint(parRad, sysLLAA1030);
 
-  vector<Int_t> sysLLAA3050;
-  sysLLAA3050.push_back(kLL3050);
-  sysLLAA3050.push_back(kAA3050);
+  vector<Int_t> sysLLAA3050 = {kLL3050, kAA3050};
   // myFitter->SetupConstraint(parRad, sysLLAA3050);
 
 }
@@ -274,13 +275,15 @@ void MinuitFit(Int_t& i, Double_t *x, Double_t &totalChisquare, Double_t *par, I
 }
 
 // main for full program
-int main(int argc, char **argv)
+int main(int argc, const char **argv)
 {
+  ArgParse args(argc, argv);
+
   // Setup
   myFitter = new Fitter();
   UserSetupSystems(myFitter);
   // Add more systems as needed, either here or in UserSetupSystems
-  if(myFitter->GetNSystems() < 1) {
+  if (myFitter->GetNSystems() < 1) {
     cout<<"No systems to fit."<<endl;
     return 1;
   }
