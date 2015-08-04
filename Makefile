@@ -13,6 +13,7 @@ CLASSES = LednickyEqn \
 					PairSystem \
 					ParameterConstraint \
 					Fitter \
+					ArgParse \
 
 OBJ_FILES = $(addsuffix .o, ${CLASSES})
 
