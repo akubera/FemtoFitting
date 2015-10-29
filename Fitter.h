@@ -21,14 +21,33 @@ using std::vector;
 
 class LednickyInfo;
 
-
-class Fitter{
- public:
+class Fitter {
+public:
   Fitter();
   virtual ~Fitter();
-  void AddPairAnalysisChisquareFit(TString simpleName, TString fileName, TString cfName, Int_t sysType, const vector<LednickyInfo> &ledInfo, vector<Double_t> initParams, vector<Double_t> minParams, vector<Double_t> maxParams, vector<Bool_t> fixParams);
-  void AddPairAnalysisLogFit(TString simpleName, TString fileName, vector<TString> numNames, vector<TString> denNames, Int_t sysType, const vector<LednickyInfo> &ledInfo, vector<Double_t> initParams, vector<Double_t> minParams, vector<Double_t> maxParams, vector<Bool_t> fixParams);
+  void AddPairAnalysisChisquareFit(TString simpleName,
+                                   TString fileName,
+                                   TString cfName,
+                                   Int_t sysType,
+                                   const vector<LednickyInfo> &ledInfo,
+                                   vector<Double_t> initParams,
+                                   vector<Double_t> minParams,
+                                   vector<Double_t> maxParams,
+                                   vector<Bool_t> fixParams);
+
+  void AddPairAnalysisLogFit(TString simpleName,
+                                     TString fileName,
+                                     vector<TString> numNames,
+                                     vector<TString> denNames,
+                                     Int_t sysType,
+                                     const vector<LednickyInfo> &ledInfo,
+                                     vector<Double_t> initParams,
+                                     vector<Double_t> minParams,
+                                     vector<Double_t> maxParams,
+                                     vector<Bool_t> fixParams);
+
   void DoFitting();
+
   Int_t GetNMinuitParams() const {return fMinuitParNames.size();};
   Int_t GetNSystems() const {return fNSystems;};
   /* Int_t GetNParams() const {return fNParams;}; */
@@ -45,7 +64,7 @@ class Fitter{
   void SetupConstraint(Int_t param, vector<Int_t> systems);
   void SetUseMINOS(Bool_t shouldUse) {fUseMINOS = shouldUse;};
 
- private:
+private:
   void CreatePairSystemChisquare(TString simpleName, TString fileName, TString cfName, Int_t sysType, const vector<LednickyInfo> &ledInfo);
   void CreatePairSystemLog(TString simpleName, TString fileName, vector<TString> numNames, vector<TString> denNames, Int_t sysType, const vector<LednickyInfo> &ledInfo);
   Int_t GetConstrainedParamIndex(const Int_t currentSys, const Int_t currentPar);
@@ -60,7 +79,7 @@ class Fitter{
   TMinuit *fMinuit;
   vector<TString>  fMinuitParNames;
   vector<Double_t> fMinuitParInitial;
-  vector<Double_t> fMinuitParMinimum; 
+  vector<Double_t> fMinuitParMinimum;
   vector<Double_t> fMinuitParMaximum;
   vector<Bool_t>   fMinuitParIsFixed;
 
@@ -93,7 +112,7 @@ class Fitter{
 
   Int_t fFitCalls;
   Double_t fChisquare;
-  
+
   // For debug use
   TStopwatch *fTimer;
   Int_t fMinuitVerbosity;
