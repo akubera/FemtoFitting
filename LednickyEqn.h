@@ -1,7 +1,7 @@
 //*********************************************
 // Base class for Lednicky correlation function
 // equation objects. Contains the parameters for
-// a particular Lednicky Eqn, and can return a 
+// a particular Lednicky Eqn, and can return a
 // TGraph of the eqn.
 // Maybe can get and use a residual correlation?
 //*******************************************
@@ -9,15 +9,19 @@
 #ifndef LednickyEqn_H
 #define LednickyEqn_H
 
-#include "TH2D.h"
-#include "TGraph.h"
+class TGraph;
+class TH2D;
+
+#include <Rtypes.h>
+#include <TString.h>
+
 #include <vector>
 
 class LednickyInfo;
 
 using std::vector;
 
-class LednickyEqn{
+class LednickyEqn {
  public:
   /* LednickyEqn(TString name, Bool_t isIdentical, TH2D *transformMatrix, Int_t nBins, Double_t binWidth); */
   LednickyEqn(const LednickyInfo &info, Int_t nBins, Double_t binWidth);
@@ -46,8 +50,9 @@ class LednickyEqn{
   Double_t GetLednickyF2(Double_t z); // Calculate the F2 function
   TGraph *GetBaseLednickyGraph(); //Calculate Lednicky in parent k* frame
   TGraph *TransformLednickyGraph(TGraph *base);
-  Double_t HbarC() const {return 0.197327;};
-  
+//  Double_t HbarC() const {return 0.197327;};
+  Double_t HbarC() const {return 0.19732697;};
+
 
 };
 

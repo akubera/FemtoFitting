@@ -1,12 +1,14 @@
 //*********************************************
 // Base class for Lednicky correlation function
 // equation objects. Contains the parameters for
-// a particular Lednicky Eqn, and can return a 
+// a particular Lednicky Eqn, and can return a
 // TGraph of the eqn.
 // Maybe can get and use a residual correlation?
 //*******************************************
 
 #include "TString.h"
+#include <TGraph.h>
+#include <TH2D.h>
 #include "TMath.h"
 #include "TF1.h"
 #include "LednickyEqn.h"
@@ -58,54 +60,73 @@ TGraph* LednickyEqn::GetBaseLednickyGraph()
   // Do all the math to calculate a base lednicky equation
   // in the k* frame of the parent particles. Return a
   // TGraph of the function.
-  
+
   // Arrays to store X and Y values of correlation function
   Double_t *kstar = new Double_t[fNBins];
   Double_t *cf    = new Double_t[fNBins];
   const complex<double> I(0.0, 1.0);
+
+  cout << fRadius << " " << fD0 << " " << fF0Real << " " <<fF0Imag << "\n";
 
   for(Int_t iBin = 0; iBin < fNBins; iBin++)
   {
     // Calculate the value of the correlation function at each bin
 
     // Use the center of the bin
-    kstar[iBin] = fBinWidth * (1.*iBin + 0.5);
+    kstar[iBin] = fBinWidth * (1. * iBin + 0.5);
 
     // We might use sqrt(s) scaling of the scattering amplitude.
     // If so, we do this, we account for the scaling with a
     // modified kstar value.
-    Double_t kstarPrime;
-    if(fUseRootSScaling) {
+    Double_t kstarPrime = kstar[iBin];
+
+    if (fUseRootSScaling) {
       Double_t s = pow( pow( pow(fActualMass1, 2) + pow(kstar[iBin],2), 0.5)
 			+ pow( pow(fActualMass2, 2) + pow(kstar[iBin],2), 0.5), 2); //mandelstam s
+
       kstarPrime = pow( (s*s + pow(fBaseMass1, 4) + pow(fBaseMass2, 4)
 			- 2.*s*(pow(fBaseMass1, 2) + pow(fBaseMass2, 2))
 			- 2.*pow(fBaseMass1, 2)*pow(fBaseMass2, 2) )
 			/ (4.*s), 0.5);
     }
-    else kstarPrime = kstar[iBin];
+
     // Get the scattering amplitude
     const complex<double> f0(fF0Real, fF0Imag);
     complex<double> scatterAmp;
-    scatterAmp = pow( 1./f0
-		      + 0.5 * fD0 * pow(kstarPrime/HbarC(), 2)
-		      - I * kstarPrime/HbarC(), -1);    
+    scatterAmp = 1.0 / ( 1.0 / f0
+		      + 0.5 * fD0 * pow(kstarPrime / HbarC(), 2)
+		      - I * kstarPrime/HbarC());
+
     // Now calculate the correlation function value
-    cf[iBin] = 0.5 * norm(scatterAmp)/pow(fRadius,2) 
-      * (1. - fD0/(2. * sqrt(TMath::Pi()) * fRadius));
+    cf[iBin] = 0.5 * norm(scatterAmp)/pow(fRadius,2)
+                   * (1. - fD0/(2. * sqrt(TMath::Pi()) * fRadius));
+
     cf[iBin] += 2. * scatterAmp.real()
-      * GetLednickyF1(2. * kstar[iBin] * fRadius / HbarC())
-      / (sqrt(TMath::Pi())*fRadius);
-    cf[iBin] -= scatterAmp.imag() 
-      * GetLednickyF2(2. * kstar[iBin] * fRadius / HbarC())
-      / fRadius;
-    if(fIsIdentical) {
+                * GetLednickyF1(2. * kstar[iBin] * fRadius / HbarC())
+                / (sqrt(TMath::Pi())*fRadius);
+
+    //printf("(%.016f+%.016f) ", scatterAmp.real(), scatterAmp.imag());
+    //cout << sqrt(pow(scatterAmp.real(), 2) + pow(scatterAmp.imag(), 2)) << ' ';
+    // cout << scatterAmp << " " << cf[iBin] << " ";
+
+    // cf[iBin]
+    float f2 = GetLednickyF2(2. * kstar[iBin] * fRadius / HbarC());
+    float y = scatterAmp.imag()
+//              * GetLednickyF2(2. * kstar[iBin] * fRadius / HbarC())
+              * f2
+              / fRadius;
+    cf[iBin] -= y;
+    // printf("%.016f ", f2);
+
+    if (fIsIdentical && false) {
       cf[iBin] *= 0.5;
       cf[iBin] -= 0.5 * exp(-4. * pow(kstar[iBin] * fRadius/HbarC(),2));
     }
     cf[iBin] += 1.;
+    printf("(%.03f, %.08f)\n", kstar[iBin], cf[iBin]); 
+//, scatterAmp.real(), scatterAmp.imag());
   }
-  
+
   // Now make a TGraph of the correlation function
   TGraph * baseGraph = new TGraph(fNBins, kstar, cf);
   delete[] kstar;
@@ -128,16 +149,16 @@ void LednickyEqn::SetParameters(const vector<Double_t> pars)
 {
   // Set all the fit parameters
   // Normalization is taken care of by PairSystem class
-  fRadius = pars[0]; 
+  fRadius = pars[0];
   fF0Real = pars[1];
   fF0Imag = pars[2];
-  fD0     = pars[3];     
+  fD0     = pars[3];
 }
 
 TGraph* LednickyEqn::TransformLednickyGraph(TGraph *base)
 {
   // If the LednickyEqn object is a residual correlation,
-  // return a graph that has been transformed into the 
+  // return a graph that has been transformed into the
   // relative momentum space of the primary correlations.
 
   if(!fTransformMatrix) return base;
@@ -147,7 +168,7 @@ TGraph* LednickyEqn::TransformLednickyGraph(TGraph *base)
   const Int_t nBins = transformedGraph->GetN();
   const Int_t nBinsTransform = fTransformMatrix->GetNbinsX();
   assert(nBins == nBinsTransform);
-  // DaughterBins are in the relative momentum space of the 
+  // DaughterBins are in the relative momentum space of the
   // primary correlations
   for(Int_t daughterBin = 0; daughterBin < nBins; daughterBin++)
   {
@@ -164,7 +185,7 @@ TGraph* LednickyEqn::TransformLednickyGraph(TGraph *base)
     if(weightSum < 0.99) transformedGraph->GetY()[daughterBin] = 0;
     else transformedGraph->GetY()[daughterBin] = valueSum/weightSum;
   }
-  
+
   delete base;
   return transformedGraph;
 }
@@ -179,5 +200,9 @@ Double_t LednickyEqn::GetLednickyF1(Double_t z)
 Double_t LednickyEqn::GetLednickyF2(Double_t z)
 {
   TF1 lednickyF2("lednickyf2","(1-exp(-x*x))/(x)");
-  return lednickyF2.Eval(z);
+  double  y = lednickyF2.Eval(z);
+  // printf("%.08f -> %.08f :", z, y);
+  return y;
+  // return lednickyF2.Eval(z);
+
 }

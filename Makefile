@@ -17,9 +17,14 @@ CLASSES = LednickyEqn \
 
 OBJ_FILES = $(addsuffix .o, ${CLASSES})
 
-.PHONY: all clean
+.PHONY: all clean test
+
+all: runMe runLednicky
 
 runMe: Main.cxx Faddeeva.o FemtoFitting.a
+	${CXX} ${CFLAGS} $< Faddeeva.o FemtoFitting.a -o $@ ${LIBS}
+
+runLednicky: RunLednicky.cxx Faddeeva.o FemtoFitting.a
 	${CXX} ${CFLAGS} $< Faddeeva.o FemtoFitting.a -o $@ ${LIBS}
 
 FemtoFitting.a: ${OBJ_FILES}
